@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+	  "module": "Node16",                 /* Use Node.js ESM-style module resolution. */
+	  "target": "ES2022",                 /* Target modern JavaScript. */
+	  "lib": ["ES2022"],                  /* Include ES2022 APIs. */
+	  "sourceMap": true,                  /* Generate source maps. */
+	  "rootDir": "src",                   /* Specify the root directory of input files. */
+	  "strict": true,                     /* Enable all strict type-checking options. */
+	  "typeRoots": ["./node_modules/@types"], /* Only include type definitions from this folder. */
+	  "types": ["node"],                  /* Specify `node` types explicitly. */
+	  "noImplicitReturns": true,          /* Report errors when not all code paths return a value. */
+	  "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statements. */
+	  "noUnusedParameters": true          /* Report errors on unused parameters. */
+	}
+  }
+  

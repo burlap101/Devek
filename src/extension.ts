@@ -34,13 +34,12 @@ export function activate(context: vscode.ExtensionContext) {
                 const { start, end } = range;
 
                 // Insert data into the database
-                This change is a new one
                 const query = `
                     INSERT INTO code_changes (
                         document_uri, timestamp, start_line, start_character,
                         end_line, end_character, text
                     ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-                `;
+                `; //This is a change that should be recorded
                 const values = [
                     document.uri.toString(),
                     timestamp,
@@ -51,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
                     text
                 ];
 
-                client.query(query).catch(err => console.error('Error inserting data:', err));
+                client.query(query, values).catch(err => console.error('Error inserting data:', err));
             });
         })
     );

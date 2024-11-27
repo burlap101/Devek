@@ -3,6 +3,7 @@
   "displayName": "Devek.dev",
   "description": "Code Change Tracking Redefined – Capture Every Keystroke, Analyze with Precision",
   "version": "0.0.1",
+  "repository": "git@github.com:ShadovvBeast/Devek.git",
   "engines": {
     "vscode": "^1.95.0"
   },

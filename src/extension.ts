@@ -1,13 +1,16 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-
 import { Client } from 'pg';
+import * as os from 'os'; // Import os module
 
 let client: Client;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Devek.dev is now active!');
+
+    // Retrieve the computer name (hostname)
+    const computerName = os.hostname();
 
     // Create a PostgreSQL client
     client = new Client({
@@ -33,13 +36,13 @@ export function activate(context: vscode.ExtensionContext) {
                 const { range, text } = change;
                 const { start, end } = range;
 
-                // Insert data into the database
+                // Insert data into the database, including the computer name
                 const query = `
                     INSERT INTO code_changes (
                         document_uri, timestamp, start_line, start_character,
-                        end_line, end_character, text
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-                `; //This is a change that should be recorded
+                        end_line, end_character, text, computer_name
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                `;
                 const values = [
                     document.uri.toString(),
                     timestamp,
@@ -47,7 +50,8 @@ export function activate(context: vscode.ExtensionContext) {
                     start.character,
                     end.line,
                     end.character,
-                    text
+                    text,
+                    computerName
                 ];
 
                 client.query(query, values).catch(err => console.error('Error inserting data:', err));
@@ -55,7 +59,6 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 }
-
 
 // This method is called when your extension is deactivated
 export function deactivate() {

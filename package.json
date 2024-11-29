@@ -2,7 +2,7 @@
   "name": "devek-dev",
   "displayName": "Devek.dev",
   "description": "Code Change Tracking Redefined – Capture Every Keystroke, Analyze with Precision",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": "git@github.com:ShadovvBeast/Devek.git",
   "engines": {
     "vscode": "^1.95.0"
@@ -21,7 +21,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "devek-dev.helloWorld",
+        "command": "devek-dev.helloWorld My final change for measurement",
         "title": "Hello World"
       }
     ]

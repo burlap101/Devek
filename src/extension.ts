@@ -1,29 +1,102 @@
 import * as vscode from 'vscode';
 import * as os from 'os';
-import WebSocket from 'ws'; // Import WebSocket library
+import WebSocket from 'ws';
 
-let ws: WebSocket | null = null;
-
+let ws: any = null;
+let authToken: any = null;
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
     console.log('Devek.dev is now active!');
 
-    // Retrieve the computer name (hostname)
+    // Load saved token from storage
+    authToken = context.globalState.get('devekAuthToken');
+
+    // Register login command
+    let loginCommand = vscode.commands.registerCommand('devek.login', async () => {
+        const email = await vscode.window.showInputBox({
+            prompt: 'Enter your email',
+            placeHolder: 'email@example.com'
+        });
+
+        if (!email) return;
+
+        const password = await vscode.window.showInputBox({
+            prompt: 'Enter your password',
+            password: true
+        });
+
+        if (!password) return;
+
+        connectToWebSocket(context, { action: 'login', data: { email, password } });
+    });
+
+    // Register logout command
+    let logoutCommand = vscode.commands.registerCommand('devek.logout', () => {
+        authToken = null;
+        context.globalState.update('devekAuthToken', null);
+        if (ws) ws.close();
+        vscode.window.showInformationMessage('Logged out successfully');
+    });
+
+    context.subscriptions.push(loginCommand, logoutCommand);
+
+    // Connect with auth token if available
+    if (authToken) {
+        connectToWebSocket(context);
+    } else {
+        vscode.window.showInformationMessage('Please log in to use Devek.dev', 'Login')
+            .then(selection => {
+                if (selection === 'Login') {
+                    vscode.commands.executeCommand('devek.login');
+                }
+            });
+    }
+}
+
+function connectToWebSocket(context: vscode.ExtensionContext, loginData?: any) {
     const computerName = os.hostname();
-
-    // Dynamically determine the environment
     const environment = vscode.env.appName || 'Unknown';
-
-    // Connect to WebSocket server
-    const wsUrl = 'ws://localhost:8080'; // Replace with your WebSocket server URL
+    const wsUrl = 'wss://ws.devek.dev';
+    
     ws = new WebSocket(wsUrl);
 
     ws.on('open', () => {
         console.log('Connected to WebSocket server.');
+        
+        // Send auth token if available
+        if (authToken) {
+            ws.send(JSON.stringify({ type: 'auth', token: authToken }));
+        }
+        // Send login data if provided
+        else if (loginData) {
+            ws.send(JSON.stringify(loginData));
+        }
     });
 
-    ws.on('error', (error) => {
+    ws.on('message', (data: any) => {
+        try {
+            const response = JSON.parse(data.toString());
+            
+            if (response.status === 'success' && response.token) {
+                // Save token and show success message
+                authToken = response.token;
+                context.globalState.update('devekAuthToken', authToken);
+                vscode.window.showInformationMessage('Successfully logged in to Devek.dev');
+            } else if (response.status === 'error') {
+                vscode.window.showErrorMessage(response.message);
+                if (response.message.includes('Authentication failed')) {
+                    authToken = null;
+                    context.globalState.update('devekAuthToken', null);
+                }
+            }
+        } catch (error) {
+            console.error('Error processing WebSocket message:', error);
+        }
+    });
+
+    ws.on('error', (error: any) => {
         console.error('WebSocket error:', error);
+        vscode.window.showErrorMessage('Failed to connect to Devek.dev');
     });
 
     ws.on('close', () => {
@@ -33,6 +106,8 @@ export function activate(context: vscode.ExtensionContext) {
     // Listen for document changes
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument(event => {
+            if (!authToken) return; // Don't send changes if not authenticated
+
             const document = event.document;
             const changes = event.contentChanges;
             const timestamp = new Date().toISOString();
@@ -41,7 +116,6 @@ export function activate(context: vscode.ExtensionContext) {
                 const { range, text } = change;
                 const { start, end } = range;
 
-                // Prepare change data
                 const changeData = {
                     document_uri: document.uri.toString(),
                     timestamp: timestamp,
@@ -54,19 +128,14 @@ export function activate(context: vscode.ExtensionContext) {
                     environment: environment
                 };
 
-                // Send change data to WebSocket server
                 if (ws && ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify(changeData));
-                    console.log('Sent data to WebSocket server:', changeData);
-                } else {
-                    console.error('WebSocket is not connected.');
+                    ws.send(JSON.stringify({ type: 'change', data: changeData }));
                 }
             });
         })
     );
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {
     if (ws) {
         ws.close();

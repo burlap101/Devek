@@ -1,9 +1,13 @@
 {
   "name": "devek-dev",
   "displayName": "Devek.dev",
+  "publisher": "Devek Inc",
   "description": "Code Change Tracking Redefined – Capture Every Keystroke, Analyze with Precision",
   "version": "0.0.2",
-  "repository": "git@github.com:ShadovvBeast/Devek.git",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ShadovvBeast/Devek.git"
+  },
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -12,16 +16,17 @@
   ],
   "activationEvents": [
     "onStartupFinished",   
-  "onLanguage:javascript", 
-  "onLanguage:typescript", 
-  "onLanguage:plaintext",  
-  "workspaceContains:**/*" 
+    "onLanguage:javascript", 
+    "onLanguage:typescript", 
+    "onLanguage:plaintext",  
+    "workspaceContains:**/*"
   ],
   "main": "./dist/extension.js",
+  "icon": "logo.png",
   "contributes": {
     "commands": [
       {
-        "command": "devek-dev.helloWorld My final change for measurement",
+        "command": "devek-dev.helloWorld",
         "title": "Hello World"
       }
     ]
@@ -33,8 +38,6 @@
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",

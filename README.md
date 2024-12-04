@@ -1,65 +1,64 @@
 # **Devek.dev**
 
-Track every keystroke in your code with precise timestamps and save the data to **TimescaleDB** for detailed analysis and insights.
+Boost your team's productivity and collaboration with **Devek.dev**, a powerful tool designed to streamline your development process and provide actionable insights.
+
+---
+
+## **Why Devek.dev?**
+
+- **Productivity Insights**: Discover patterns in your team's workflow and eliminate bottlenecks.
+- **Seamless Collaboration**: Enable your team to work more efficiently and effectively together.
+- **Optimized Workflow**: Improve team performance with clear, data-driven insights.
 
 ---
 
 ## **Features**
 
-- **Keystroke Tracking**: Automatically logs every code change you make in VS Code.
-- **Timestamps**: Records the exact time for each change.
-- **Database Integration**: Saves the data to a TimescaleDB instance for analytics and historical tracking.
-- **Productivity Insights**: Use your data to analyze coding patterns, identify bottlenecks, and improve efficiency.
+- **Real-Time Tracking**: Gain insights into your team's workflow as it happens.
+- **Actionable Insights**: Identify areas for improvement and optimize your development process.
+- **Enhanced Collaboration**: Strengthen teamwork with transparent, data-backed decisions.
+
+---
+
+## **Getting Started**
+
+1. **Install Devek.dev**: Find "Devek.dev" in the VS Code Marketplace and click "Install".
+2. **Configure Settings**: Set up the extension to suit your team's workflow.
+3. **Start Enhancing Productivity**: Leverage insights to improve teamwork and efficiency.
 
 ---
 
 ## **Requirements**
 
-- **TimescaleDB Instance**: 
-  - Ensure you have a TimescaleDB instance running.
-  - Provide the connection string in the extension's settings.
-
-- **VS Code 1.70.0 or later**.
+- Visual Studio Code version 1.70.0 or later.
 
 ---
 
 ## **Extension Settings**
 
-This extension contributes the following settings:
-
-- `devekDev.dbConnection`: Set the TimescaleDB connection string.
-- `devekDev.enableTracking`: Enable or disable keystroke tracking.
+- `devekDev.enableInsights`: Enable or disable productivity tracking.
+- `devekDev.customConfig`: Adjust settings to match your team's unique workflow.
 
 ---
 
 ## **Known Issues**
 
-- High-frequency changes in large files may result in increased memory usage.
-- Ensure stable database connectivity to avoid data loss during tracking.
+- High activity across multiple files may result in minor delays in processing.
+- Ensure optimal VS Code performance for best results.
 
 ---
 
 ## **Release Notes**
 
 ### 1.0.0
-- Initial release of **Devek.dev**.
-- Features:
-  - Tracks all keystrokes in the editor.
-  - Saves changes to TimescaleDB with timestamps.
+- **Initial release of Devek.dev**
+  - Gain productivity insights.
+  - Optimize collaboration and workflow.
 
 ---
 
-## **Extension Guidelines**
+## **Get Involved**
 
-Ensure you follow the extension guidelines and best practices while using this extension.
+Have suggestions, feedback, or questions? Reach out to help us make **Devek.dev** even better!
 
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
----
-
-## **For more information**
-
-- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy using Devek.dev!**
+**Transform the way your team collaborates and develops with Devek.dev!**

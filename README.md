@@ -1,30 +1,30 @@
 # **Devek.dev**
 
-Boost your team's productivity and collaboration with **Devek.dev**, a powerful tool designed to streamline your development process and provide actionable insights.
+Elevate your team's productivity and collaboration with **Devek.dev**, a VS Code extension designed to streamline workflows and foster better development practices.
 
 ---
 
 ## **Why Devek.dev?**
 
-- **Productivity Insights**: Discover patterns in your team's workflow and eliminate bottlenecks.
-- **Seamless Collaboration**: Enable your team to work more efficiently and effectively together.
-- **Optimized Workflow**: Improve team performance with clear, data-driven insights.
+- **Productivity Insights**: Gain a deeper understanding of your development processes to identify and address bottlenecks.
+- **Streamlined Collaboration**: Improve teamwork and ensure alignment across your development team.
+- **Workflow Optimization**: Make informed decisions to enhance efficiency and drive better results.
 
 ---
 
 ## **Features**
 
-- **Real-Time Tracking**: Gain insights into your team's workflow as it happens.
-- **Actionable Insights**: Identify areas for improvement and optimize your development process.
-- **Enhanced Collaboration**: Strengthen teamwork with transparent, data-backed decisions.
+- **Insightful Metrics**: Understand team dynamics and improve your processes.
+- **Actionable Feedback**: Identify areas for growth and improvement.
+- **Enhanced Collaboration**: Foster better communication and teamwork through shared insights.
 
 ---
 
 ## **Getting Started**
 
-1. **Install Devek.dev**: Find "Devek.dev" in the VS Code Marketplace and click "Install".
-2. **Configure Settings**: Set up the extension to suit your team's workflow.
-3. **Start Enhancing Productivity**: Leverage insights to improve teamwork and efficiency.
+1. **Install Devek.dev**: Search for "Devek.dev" in the VS Code Marketplace and click "Install".
+2. **Customize Settings**: Tailor the extension to meet your team's needs.
+3. **Drive Efficiency**: Use insights to unlock your team's full potential.
 
 ---
 
@@ -36,29 +36,30 @@ Boost your team's productivity and collaboration with **Devek.dev**, a powerful 
 
 ## **Extension Settings**
 
-- `devekDev.enableInsights`: Enable or disable productivity tracking.
-- `devekDev.customConfig`: Adjust settings to match your team's unique workflow.
+- `devekDev.enableInsights`: Enable or disable productivity insights.
+- `devekDev.customConfig`: Personalize the extension to fit your workflow.
 
 ---
 
 ## **Known Issues**
 
-- High activity across multiple files may result in minor delays in processing.
-- Ensure optimal VS Code performance for best results.
+- In environments with heavy multitasking, minor performance adjustments may be required.
+- Regularly review your configuration for optimal results.
 
 ---
 
 ## **Release Notes**
 
-### 1.0.0
-- **Initial release of Devek.dev**
-  - Gain productivity insights.
-  - Optimize collaboration and workflow.
+### 0.0.4
+- **First release of Devek.dev**
+  - Deliver productivity insights.
+  - Improve team collaboration and workflow.
 
 ---
 
 ## **Get Involved**
 
-Have suggestions, feedback, or questions? Reach out to help us make **Devek.dev** even better!
+Have feedback or suggestions? Let us know! Your input helps us refine **Devek.dev** to better serve development teams.
 
-**Transform the way your team collaborates and develops with Devek.dev!**
+
+**Empower your team with Devek.dev—streamline, collaborate, and succeed together!**

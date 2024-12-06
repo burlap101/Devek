@@ -6,7 +6,7 @@ let ws: WebSocket | null = null;
 let authToken: string | null = null;
 let statusBarItem: vscode.StatusBarItem;
 let reconnectAttempts = 0;
-let pingInterval: NodeJS.Timer;
+let pingInterval: any;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_INTERVAL = 5000;
 
@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Load saved token from storage
-    authToken = context.globalState.get('devekAuthToken');
+    authToken = context.globalState.get('devekAuthToken') || null;
     
     // Initialize connection
     if (authToken) {
@@ -113,7 +113,7 @@ function getLoginHtml() {
                     margin-bottom: 15px;
                 }
                 input {
-                    width: 100%;
+                    width: 100%; 
                     padding: 8px;
                     margin-top: 5px;
                     background-color: var(--vscode-input-background);
@@ -340,7 +340,7 @@ function showLoginPrompt() {
 }
 
 function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSocketMessage, loginCallback?: (success: boolean) => void) {
-    const wsUrl = process.env.DEVEK_WS_URL || 'ws://localhost:8080';
+    const wsUrl = process.env.DEVEK_WS_URL || 'wss://ws.devek.dev';
     
     if (ws) {
         clearInterval(pingInterval);

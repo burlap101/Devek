@@ -11,10 +11,10 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished",   
-    "onLanguage:javascript", 
-    "onLanguage:typescript", 
-    "onLanguage:plaintext",  
+    "onStartupFinished",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:plaintext",
     "workspaceContains:**/*"
   ],
   "main": "./dist/extension.js",
@@ -72,6 +72,6 @@
   },
   "dependencies": {
     "pg": "^8.13.1",
-    "ws": "^8.16.0"
+    "ws": "^8.18.0"
   }
 }

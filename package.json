@@ -2,14 +2,10 @@
   "name": "devek-dev",
   "displayName": "Devek.dev",
   "publisher": "devek-dev",
-  "description": "Code Change Tracking Redefined – Capture Every Keystroke, Analyze with Precision",
-  "version": "0.0.4",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:ShadovvBeast/Devek.git"
-  },
+  "description": "Optimize Your Developer Teams Effortlessly",
+  "version": "0.0.6",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.70.0"
   },
   "categories": [
     "Other"
@@ -26,8 +22,24 @@
   "contributes": {
     "commands": [
       {
-        "command": "devek-dev.helloWorld",
-        "title": "Hello World"
+        "command": "devek.login",
+        "title": "Devek: Login",
+        "category": "Devek"
+      },
+      {
+        "command": "devek.logout",
+        "title": "Devek: Logout",
+        "category": "Devek"
+      },
+      {
+        "command": "devek.reconnect",
+        "title": "Devek: Reconnect",
+        "category": "Devek"
+      },
+      {
+        "command": "devek.showMenu",
+        "title": "Devek: Show Menu",
+        "category": "Devek"
       }
     ]
   },
@@ -47,7 +59,8 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@types/pg": "^8.11.10",
-    "@types/vscode": "^1.95.0",
+    "@types/vscode": "^1.70.0",
+    "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "^8.10.0",
     "@typescript-eslint/parser": "^8.7.0",
     "@vscode/test-cli": "^0.0.10",
@@ -58,6 +71,7 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "ws": "^8.16.0"
   }
 }

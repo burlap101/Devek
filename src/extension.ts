@@ -3,14 +3,15 @@ import * as os from 'os';
 import WebSocket from 'ws';
 
 let ws: WebSocket | null = null;
-let authToken: any = null;
+let authToken: string | null = null;
 let statusBarItem: vscode.StatusBarItem;
 let reconnectAttempts = 0;
+let pingInterval: NodeJS.Timer;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_INTERVAL = 5000;
 
 interface WebSocketMessage {
-    type: 'auth' | 'change' | 'login';
+    type: string;
     data?: any;
     token?: string;
     status?: string;
@@ -24,17 +25,17 @@ export function activate(context: vscode.ExtensionContext) {
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     context.subscriptions.push(statusBarItem);
 
-    // Load saved token from storage
-    authToken = context.globalState.get('devekAuthToken');
-    updateStatusBar('initializing');
-
     // Register commands
     context.subscriptions.push(
         vscode.commands.registerCommand('devek.login', () => showLoginWebview(context)),
         vscode.commands.registerCommand('devek.logout', () => handleLogout(context)),
-        vscode.commands.registerCommand('devek.reconnect', () => connectToWebSocket(context))
+        vscode.commands.registerCommand('devek.reconnect', () => connectToWebSocket(context)),
+        vscode.commands.registerCommand('devek.showMenu', showMenu),
     );
 
+    // Load saved token from storage
+    authToken = context.globalState.get('devekAuthToken');
+    
     // Initialize connection
     if (authToken) {
         connectToWebSocket(context);
@@ -55,14 +56,35 @@ function showLoginWebview(context: vscode.ExtensionContext) {
         }
     );
 
+    let loginInProgress = false;
+
     panel.webview.html = getLoginHtml();
 
     panel.webview.onDidReceiveMessage(
         async message => {
             switch (message.command) {
                 case 'login':
-                    await handleLoginAttempt(context, message.email, message.password);
-                    panel.dispose();
+                    if (loginInProgress) return;
+                    loginInProgress = true;
+
+                    try {
+                        const success = await handleLoginAttempt(context, message.email, message.password);
+                        if (success) {
+                            panel.dispose();
+                        } else {
+                            panel.webview.postMessage({ 
+                                type: 'error', 
+                                message: 'Invalid email or password' 
+                            });
+                        }
+                    } catch (error) {
+                        panel.webview.postMessage({ 
+                            type: 'error', 
+                            message: 'Failed to connect to server' 
+                        });
+                    } finally {
+                        loginInProgress = false;
+                    }
                     break;
             }
         },
@@ -111,10 +133,18 @@ function getLoginHtml() {
                 button:hover {
                     background-color: var(--vscode-button-hoverBackground);
                 }
+                button:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
                 .error {
                     color: var(--vscode-errorForeground);
                     margin-top: 10px;
                     display: none;
+                    padding: 8px;
+                    border-radius: 4px;
+                    background-color: var(--vscode-inputValidation-errorBackground);
+                    border: 1px solid var(--vscode-inputValidation-errorBorder);
                 }
             </style>
         </head>
@@ -130,21 +160,24 @@ function getLoginHtml() {
                     <input type="password" id="password" name="password" required>
                 </div>
                 <div class="error" id="error-message"></div>
-                <button onclick="login()">Login</button>
+                <button id="loginButton" onclick="login()">Login</button>
             </div>
             <script>
                 const vscode = acquireVsCodeApi();
+                const button = document.getElementById('loginButton');
+                const errorElement = document.getElementById('error-message');
                 
                 function login() {
                     const email = document.getElementById('email').value;
                     const password = document.getElementById('password').value;
-                    const errorElement = document.getElementById('error-message');
                     
                     if (!email || !password) {
-                        errorElement.textContent = 'Please fill in all fields';
-                        errorElement.style.display = 'block';
+                        showError('Please fill in all fields');
                         return;
                     }
+                    
+                    button.disabled = true;
+                    errorElement.style.display = 'none';
                     
                     vscode.postMessage({
                         command: 'login',
@@ -152,23 +185,108 @@ function getLoginHtml() {
                         password: password
                     });
                 }
+
+                function showError(message) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                    button.disabled = false;
+                }
+
+                window.addEventListener('message', event => {
+                    const message = event.data;
+                    if (message.type === 'error') {
+                        showError(message.message);
+                    }
+                });
             </script>
         </body>
         </html>
     `;
 }
 
-async function handleLoginAttempt(context: vscode.ExtensionContext, email: string, password: string) {
-    updateStatusBar('connecting');
-    connectToWebSocket(context, { type: 'login', data: { email, password } });
+function handleLoginAttempt(context: vscode.ExtensionContext, email: string, password: string): Promise<boolean> {
+    return new Promise((resolve) => {
+        updateStatusBar('connecting');
+        
+        let loginTimeout = setTimeout(() => {
+            resolve(false);
+            vscode.window.showErrorMessage('Login attempt timed out');
+            updateStatusBar('disconnected');
+        }, 10000);
+
+        connectToWebSocket(context, { type: 'login', data: { email, password } }, (success) => {
+            clearTimeout(loginTimeout);
+            resolve(success);
+        });
+    });
 }
 
 function handleLogout(context: vscode.ExtensionContext) {
     authToken = null;
     context.globalState.update('devekAuthToken', null);
-    if (ws) ws.close();
+    if (ws) {
+        clearInterval(pingInterval);
+        ws.close();
+    }
     updateStatusBar('disconnected');
     showLoginPrompt();
+}
+
+function showMenu() {
+    const items: { [key: string]: string } = {
+        'View Status': authToken ? 'Connected' : 'Disconnected',
+        'Logout': 'Sign out from Devek.dev',
+        'Reconnect': 'Try reconnecting to server',
+        'Learn More': 'Visit Devek.dev documentation'
+    };
+
+    vscode.window.showQuickPick(
+        Object.keys(items).map(label => ({
+            label,
+            description: items[label],
+            picked: label === 'View Status' && !!authToken
+        }))
+    ).then(selection => {
+        if (!selection) return;
+
+        switch (selection.label) {
+            case 'Logout':
+                vscode.commands.executeCommand('devek.logout');
+                break;
+            case 'Reconnect':
+                vscode.commands.executeCommand('devek.reconnect');
+                break;
+            case 'Learn More':
+                vscode.env.openExternal(vscode.Uri.parse('https://devek.dev'));
+                break;
+            case 'View Status':
+                showConnectionStatus();
+                break;
+        }
+    });
+}
+
+function showConnectionStatus() {
+    if (!authToken) {
+        vscode.window.showInformationMessage('Not connected to Devek.dev', 'Login').then(selection => {
+            if (selection === 'Login') {
+                vscode.commands.executeCommand('devek.login');
+            }
+        });
+        return;
+    }
+
+    const status = ws?.readyState === WebSocket.OPEN ? 'Connected' : 'Disconnected';
+    const hostname = os.hostname();
+    const message = `Status: ${status}\nDevice: ${hostname}\nEnvironment: ${vscode.env.appName}`;
+    
+    vscode.window.showInformationMessage(message, 'Reconnect', 'Logout').then(selection => {
+        if (selection === 'Reconnect') {
+            vscode.commands.executeCommand('devek.reconnect');
+        } else if (selection === 'Logout') {
+            vscode.commands.executeCommand('devek.logout');
+        }
+    });
 }
 
 function updateStatusBar(status: 'connected' | 'connecting' | 'disconnected' | 'error' | 'initializing') {
@@ -221,12 +339,11 @@ function showLoginPrompt() {
     });
 }
 
-function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSocketMessage) {
-    const computerName = os.hostname();
-    const environment = vscode.env.appName || 'Unknown';
+function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSocketMessage, loginCallback?: (success: boolean) => void) {
     const wsUrl = process.env.DEVEK_WS_URL || 'ws://localhost:8080';
     
     if (ws) {
+        clearInterval(pingInterval);
         ws.close();
     }
 
@@ -234,7 +351,7 @@ function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSoc
     updateStatusBar('connecting');
 
     ws.on('open', () => {
-        console.log('Connected to WebSocket server.');
+        console.log('Connected to WebSocket server');
         reconnectAttempts = 0;
         
         if (authToken) {
@@ -242,39 +359,79 @@ function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSoc
         } else if (loginData) {
             ws?.send(JSON.stringify(loginData));
         }
+
+        // Start ping interval
+        pingInterval = setInterval(() => {
+            if (ws?.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping' }));
+            } else {
+                clearInterval(pingInterval);
+            }
+        }, 30000);
     });
 
     ws.on('message', (data) => {
         try {
-            const response = JSON.parse(data.toString()) as WebSocketMessage;
-            
-            if (response.status === 'success' && response.token) {
-                authToken = response.token;
-                context.globalState.update('devekAuthToken', authToken);
-                updateStatusBar('connected');
-                vscode.window.showInformationMessage('Successfully connected to Devek.dev');
-            } else if (response.status === 'error') {
-                vscode.window.showErrorMessage(response.message || 'An error occurred');
-                if (response.message?.includes('Authentication failed')) {
-                    authToken = null;
-                    context.globalState.update('devekAuthToken', null);
-                    updateStatusBar('disconnected');
-                }
+            const response = JSON.parse(data.toString());
+            console.log('Received response:', response);
+
+            switch (response.type) {
+                case 'init':
+                    console.log('Received initial data:', response.data);
+                    updateStatusBar('connected');
+                    if (loginCallback) {
+                        loginCallback(true);
+                    }
+                    break;
+
+                case 'pong':
+                    console.log('Received pong:', response.data?.timestamp);
+                    break;
+
+                default:
+                    if (response.status === 'success') {
+                        if (response.token) {
+                            authToken = response.token;
+                            context.globalState.update('devekAuthToken', authToken);
+                            ws?.send(JSON.stringify({ type: 'auth', token: authToken }));
+                        }
+                    } else if (response.status === 'error') {
+                        console.error('Server error:', response.message);
+                        if (response.message?.includes('Authentication failed')) {
+                            authToken = null;
+                            context.globalState.update('devekAuthToken', null);
+                            updateStatusBar('disconnected');
+                            if (loginCallback) {
+                                loginCallback(false);
+                            }
+                            vscode.window.showErrorMessage('Authentication failed. Please log in again.');
+                        }
+                    }
             }
         } catch (error) {
             console.error('Error processing WebSocket message:', error);
-            updateStatusBar('error');
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                updateStatusBar('error');
+            }
+            if (loginCallback) {
+                loginCallback(false);
+            }
         }
     });
 
     ws.on('error', (error) => {
         console.error('WebSocket error:', error);
+        clearInterval(pingInterval);
         updateStatusBar('error');
+        if (loginCallback) {
+            loginCallback(false);
+        }
         handleReconnection(context);
     });
 
     ws.on('close', () => {
-        console.log('Disconnected from WebSocket server.');
+        console.log('Disconnected from WebSocket server');
+        clearInterval(pingInterval);
         if (authToken) {
             updateStatusBar('error');
             handleReconnection(context);
@@ -286,6 +443,8 @@ function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSoc
         vscode.workspace.onDidChangeTextDocument(event => {
             if (!authToken || !ws || ws.readyState !== WebSocket.OPEN) return;
 
+            //if (event.document.uri.scheme !== 'file') return;
+
             const document = event.document;
             const changes = event.contentChanges;
             const timestamp = new Date().toISOString();
@@ -294,22 +453,33 @@ function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSoc
                 const { range, text } = change;
                 const { start, end } = range;
 
-                const changeData: WebSocketMessage = {
+                if (text.length === 0 && start.line === end.line && start.character === end.character) {
+                    return;
+                }
+
+                const changeData = {
                     type: 'change',
                     data: {
-                        document_uri: document.uri.toString(),
+                        document_uri: document.uri.fsPath.replace(/\\/g, '/'),
                         timestamp,
                         start_line: start.line,
                         start_character: start.character,
                         end_line: end.line,
                         end_character: end.character,
                         text,
-                        computer_name: computerName,
-                        environment
+                        computer_name: os.hostname(),
+                        environment: vscode.env.appName
                     }
                 };
 
-                ws?.send(JSON.stringify(changeData));
+                console.log('Sending code change:', JSON.stringify(changeData, null, 2));
+
+                ws?.send(JSON.stringify(changeData), (error) => {
+                    if (error) {
+                        console.error('Failed to send code change:', error);
+                        vscode.window.showErrorMessage('Failed to sync code change');
+                    }
+                });
             });
         })
     );
@@ -318,11 +488,16 @@ function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSoc
 function handleReconnection(context: vscode.ExtensionContext) {
     if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
         reconnectAttempts++;
+        updateStatusBar('connecting');
+        
+        const delay = RECONNECT_INTERVAL * Math.min(reconnectAttempts, 3); // Progressive backoff
         setTimeout(() => {
             if (authToken) {
                 connectToWebSocket(context);
+            } else {
+                updateStatusBar('disconnected');
             }
-        }, RECONNECT_INTERVAL);
+        }, delay);
     } else {
         vscode.window.showErrorMessage(
             'Failed to connect to Devek.dev. Would you like to try again?',
@@ -332,6 +507,8 @@ function handleReconnection(context: vscode.ExtensionContext) {
             if (selection === 'Retry') {
                 reconnectAttempts = 0;
                 connectToWebSocket(context);
+            } else {
+                updateStatusBar('disconnected');
             }
         });
     }
@@ -339,7 +516,8 @@ function handleReconnection(context: vscode.ExtensionContext) {
 
 export function deactivate() {
     if (ws) {
+        clearInterval(pingInterval);
         ws.close();
-        console.log('WebSocket connection closed.');
+        console.log('WebSocket connection closed');
     }
 }

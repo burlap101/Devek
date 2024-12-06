@@ -50,7 +50,7 @@ Elevate your team's productivity and collaboration with **Devek.dev**, a VS Code
 
 ## **Release Notes**
 
-### 0.0.4
+### 0.0.5
 - **First release of Devek.dev**
   - Deliver productivity insights.
   - Improve team collaboration and workflow.

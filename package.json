@@ -3,10 +3,11 @@
   "displayName": "Devek.dev",
   "publisher": "devek-dev",
   "description": "Optimize Your Developer Teams Effortlessly",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "engines": {
     "vscode": "^1.70.0"
   },
+  "repository": "https://github.com/DevekDev/Devek",
   "categories": [
     "Other"
   ],

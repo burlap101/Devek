@@ -28,6 +28,12 @@ Elevate your team's productivity and collaboration with **Devek.dev**, a VS Code
 
 ---
 
+## **Install**
+
+Get Devek.dev directly from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=devek-dev.devek-dev).
+
+---
+
 ## **Requirements**
 
 - Visual Studio Code version 1.70.0 or later.
@@ -41,15 +47,32 @@ Elevate your team's productivity and collaboration with **Devek.dev**, a VS Code
 
 ---
 
-## **Known Issues**
+## **Building and Running Locally**
 
-- In environments with heavy multitasking, minor performance adjustments may be required.
-- Regularly review your configuration for optimal results.
+To build and run Devek.dev locally:
+
+1. Clone the repository:
+   git clone https://github.com/your-username/devek-dev.git
+   cd devek-dev
+
+2. Install dependencies:
+   npm install
+
+3. Open in VS Code and run the extension:
+   - Press F5 to start a new VS Code session with Devek.dev active.
 
 ---
 
 ## **Release Notes**
 
+### 0.0.7
+- **Going open-source!**
+  - The Devek Visual Studio Code plugin is going open-source!
+---
+### 0.0.6
+- **Bug fixes and performance improvements**
+  - Fix minor bugs and improve performance.
+---
 ### 0.0.5
 - **First release of Devek.dev**
   - Deliver productivity insights.
@@ -57,9 +80,24 @@ Elevate your team's productivity and collaboration with **Devek.dev**, a VS Code
 
 ---
 
+## **Contributing**
+
+Devek.dev is open source! We welcome contributions from developers around the world.
+- Report bugs and suggest features via [GitHub Issues](#).
+- Submit pull requests to improve the plugin.
+
+See our [CONTRIBUTING.md](./CONTRIBUTING.md) for more details.
+
+---
+
+## **License**
+
+This project is licensed under the [MIT License](./LICENSE).
+
+---
+
 ## **Get Involved**
 
 Have feedback or suggestions? Let us know! Your input helps us refine **Devek.dev** to better serve development teams.
-
 
 **Empower your team with Devek.dev—streamline, collaborate, and succeed together!**

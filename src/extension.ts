@@ -31,6 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('devek.logout', () => handleLogout(context)),
         vscode.commands.registerCommand('devek.reconnect', () => connectToWebSocket(context)),
         vscode.commands.registerCommand('devek.showMenu', showMenu),
+        vscode.commands.registerCommand('devek.showApp', () => showAppWebview(context)) // New command
     );
 
     // Load saved token from storage
@@ -39,6 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Initialize connection
     if (authToken) {
         connectToWebSocket(context);
+        showAppWebview(context); // Show app on startup if logged in
     } else {
         updateStatusBar('disconnected');
         showLoginPrompt();
@@ -64,13 +66,16 @@ function showLoginWebview(context: vscode.ExtensionContext) {
         async message => {
             switch (message.command) {
                 case 'login':
-                    if (loginInProgress) return;
+                    if (loginInProgress) { 
+                        return;
+                    };
                     loginInProgress = true;
 
                     try {
                         const success = await handleLoginAttempt(context, message.email, message.password);
                         if (success) {
                             panel.dispose();
+                            showAppWebview(context); // Show app after successful login
                         } else {
                             panel.webview.postMessage({ 
                                 type: 'error', 
@@ -85,6 +90,9 @@ function showLoginWebview(context: vscode.ExtensionContext) {
                     } finally {
                         loginInProgress = false;
                     }
+                    break;
+                case 'register':
+                    vscode.env.openExternal(vscode.Uri.parse('https://app.devek.dev/'));
                     break;
             }
         },
@@ -146,6 +154,19 @@ function getLoginHtml() {
                     background-color: var(--vscode-inputValidation-errorBackground);
                     border: 1px solid var(--vscode-inputValidation-errorBorder);
                 }
+                .register-link {
+                    text-align: center;
+                    margin-top: 20px;
+                    padding-top: 20px;
+                    border-top: 1px solid var(--vscode-input-border);
+                }
+                .register-link a {
+                    color: var(--vscode-textLink-foreground);
+                    text-decoration: none;
+                }
+                .register-link a:hover {
+                    text-decoration: underline;
+                }
             </style>
         </head>
         <body>
@@ -161,6 +182,9 @@ function getLoginHtml() {
                 </div>
                 <div class="error" id="error-message"></div>
                 <button id="loginButton" onclick="login()">Login</button>
+                <div class="register-link">
+                    Not yet registered? <a href="#" onclick="register()">Register here</a>
+                </div>
             </div>
             <script>
                 const vscode = acquireVsCodeApi();
@@ -186,6 +210,12 @@ function getLoginHtml() {
                     });
                 }
 
+                function register() {
+                    vscode.postMessage({
+                        command: 'register'
+                    });
+                }
+
                 function showError(message) {
                     errorElement.textContent = message;
                     errorElement.style.display = 'block';
@@ -199,6 +229,45 @@ function getLoginHtml() {
                     }
                 });
             </script>
+        </body>
+        </html>
+    `;
+}
+
+
+function showAppWebview(_context: vscode.ExtensionContext) {
+    const panel = vscode.window.createWebviewPanel(
+        'devekApp',
+        'Devek.dev',
+        vscode.ViewColumn.One,
+        {
+            enableScripts: true,
+            retainContextWhenHidden: true
+        }
+    );
+
+    // Set the webview's HTML content to load app.devek.dev
+    panel.webview.html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body, html {
+                    margin: 0;
+                    padding: 0;
+                    width: 100%;
+                    height: 100vh;
+                    overflow: hidden;
+                }
+                iframe {
+                    width: 100%;
+                    height: 100vh;
+                    border: none;
+                }
+            </style>
+        </head>
+        <body>
+            <iframe src="https://app.devek.dev" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
         </body>
         </html>
     `;
@@ -234,6 +303,7 @@ function handleLogout(context: vscode.ExtensionContext) {
 
 function showMenu() {
     const items: { [key: string]: string } = {
+        'View App': 'Open Devek.dev application',
         'View Status': authToken ? 'Connected' : 'Disconnected',
         'Logout': 'Sign out from Devek.dev',
         'Reconnect': 'Try reconnecting to server',
@@ -247,9 +317,14 @@ function showMenu() {
             picked: label === 'View Status' && !!authToken
         }))
     ).then(selection => {
-        if (!selection) return;
+        if (!selection) { 
+            return; 
+        };
 
         switch (selection.label) {
+            case 'View App':
+                vscode.commands.executeCommand('devek.showApp');
+                break;
             case 'Logout':
                 vscode.commands.executeCommand('devek.logout');
                 break;
@@ -373,11 +448,8 @@ function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSoc
     ws.on('message', (data) => {
         try {
             const response = JSON.parse(data.toString());
-            console.log('Received response:', response);
-
             switch (response.type) {
                 case 'init':
-                    console.log('Received initial data:', response.data);
                     updateStatusBar('connected');
                     if (loginCallback) {
                         loginCallback(true);
@@ -441,9 +513,9 @@ function connectToWebSocket(context: vscode.ExtensionContext, loginData?: WebSoc
     // Listen for document changes
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument(event => {
-            if (!authToken || !ws || ws.readyState !== WebSocket.OPEN) return;
-
-            //if (event.document.uri.scheme !== 'file') return;
+            if (!authToken || !ws || ws.readyState !== WebSocket.OPEN) {
+                return;
+            }
 
             const document = event.document;
             const changes = event.contentChanges;

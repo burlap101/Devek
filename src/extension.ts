@@ -113,7 +113,7 @@ function getLoginHtml() {
                     margin-bottom: 15px;
                 }
                 input {
-                    width: 100%; 
+                    width: 100%;
                     padding: 8px;
                     margin-top: 5px;
                     background-color: var(--vscode-input-background);

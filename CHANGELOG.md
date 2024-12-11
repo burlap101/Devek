@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.0.7] - 2024-12-10
+## [0.0.8] - 2024-12-10
 ### Added
 - Open-source release of Devek.dev
 - Improved documentation with setup and contribution guidelines

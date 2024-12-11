@@ -1,6 +1,6 @@
 # **Devek.dev**
 
-Elevate your team's productivity and collaboration with **Devek.dev**, a VS Code extension designed to streamline workflows and foster better development practices.
+Elevate your productivity and collaboration with **Devek.dev**, a VS Code extension designed to streamline workflows and foster better development practices.
 
 ---
 

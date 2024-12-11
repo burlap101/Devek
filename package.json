@@ -2,7 +2,7 @@
   "name": "devek-dev",
   "displayName": "Devek.dev",
   "publisher": "devek-dev",
-  "description": "Optimize Your Developer Teams Effortlessly",
+  "description": "Optimize Your Development Productivity Effortlessly",
   "version": "0.0.7",
   "engines": {
     "vscode": "^1.70.0"

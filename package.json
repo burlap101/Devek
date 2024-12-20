@@ -53,10 +53,12 @@
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "biome lint ./src",
+    "format": "biome format --write ./src",
     "test": "vscode-test"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@types/pg": "^8.11.10",
